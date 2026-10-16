@@ -1,0 +1,12 @@
+{
+  "name": "kit-6x1",
+  "displayName": "Kit 6x1 para advogados",
+  "version": "0.2.1",
+  "description": "Readequação da escala de trabalho ao fim da 6x1 (PEC 221/2019): cenários de custo, escala legal e relatório técnico, com painel ao vivo.",
+  "author": {
+    "name": "Antonio Marcos Gonçalves Abussafi"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/abussafi/kit-6x1-advogados",
+  "repository": "https://github.com/abussafi/kit-6x1-advogados"
+}

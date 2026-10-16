@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# Lançador do motor kit6x1: cria um ambiente Python isolado na primeira execução.
+set -euo pipefail
+RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
+if [ -n "${KIT6X1_PYTHON:-}" ]; then
+  PY="$KIT6X1_PYTHON"
+else
+  DADOS="${CLAUDE_PLUGIN_DATA:-$HOME/.kit6x1}"
+  VENV="$DADOS/venv"
+  LOCK="$DADOS/.lock"
+  if [ ! -f "$VENV/.pronto" ]; then
+    mkdir -p "$DADOS"
+    # Trava: só um processo constrói o ambiente por vez.
+    espera=0
+    until mkdir "$LOCK" 2>/dev/null; do
+      if [ -n "$(find "$LOCK" -maxdepth 0 -mmin +10 2>/dev/null)" ]; then
+        rm -rf "$LOCK"
+        continue
+      fi
+      if [ "$espera" -ge 300 ]; then
+        echo "Tempo esgotado aguardando outra preparação do Kit 6x1 (trava: $LOCK)." >&2
+        exit 1
+      fi
+      sleep 1
+      espera=$((espera + 1))
+    done
+    trap 'rm -rf "$LOCK"' EXIT
+    # Outro processo pode ter terminado enquanto esperávamos.
+    if [ ! -f "$VENV/.pronto" ]; then
+      rm -rf "$VENV"
+      echo "Preparando o ambiente do Kit 6x1 (só na primeira vez)…" >&2
+      if command -v uv >/dev/null 2>&1; then
+        uv venv --quiet --python 3.12 "$VENV"
+        uv pip install --quiet --python "$VENV/bin/python" ortools==9.12.4544
+      else
+        PYBASE="$(command -v python3.12 || command -v python3 || true)"
+        if [ -z "$PYBASE" ]; then
+          echo "Python 3 não encontrado. Instale o uv ou o Python 3.10 ou superior." >&2
+          exit 1
+        fi
+        if ! "$PYBASE" -c 'import sys; sys.exit(sys.version_info < (3, 10))'; then
+          VERSAO="$("$PYBASE" -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
+          echo "Python 3.10 ou superior é necessário (encontrado $VERSAO em $PYBASE)." >&2
+          exit 1
+        fi
+        "$PYBASE" -m venv "$VENV"
+        "$VENV/bin/pip" install --quiet ortools==9.12.4544
+      fi
+      if ! "$VENV/bin/python" -c "import ortools"; then
+        echo "A instalação do ortools falhou; o ambiente do Kit 6x1 não está pronto." >&2
+        exit 1
+      fi
+      touch "$VENV/.pronto"
+    fi
+    trap - EXIT
+    rm -rf "$LOCK"
+  fi
+  PY="$VENV/bin/python"
+fi
+export PYTHONPATH="$RAIZ${PYTHONPATH:+:$PYTHONPATH}"
+exec "$PY" -m kit6x1 "$@"

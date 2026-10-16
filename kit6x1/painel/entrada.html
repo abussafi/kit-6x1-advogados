@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dados da empresa</title>
+<style>
+:root{--bg:#0b0f0d;--card:#121a16;--line:#1f2b25;--txt:#e6efe9;--mut:#8aa397;--acc:#3ddc84;--red:#ff6b6b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 -apple-system,system-ui,sans-serif;padding:16px}
+main{max-width:900px;margin:0 auto}h1{font-size:18px;font-weight:500}section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px}
+h2{font-size:14px;font-weight:500;margin:0 0 10px}label{font-size:12px;color:var(--mut);display:block}
+input,select{width:100%;background:#0e1512;color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:6px;font:inherit}
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}.dia,.fn{display:grid;gap:6px;align-items:center;margin-bottom:6px}
+.dia{grid-template-columns:50px 1fr 1fr 1fr 70px}.fn{grid-template-columns:1.2fr 1fr .9fr .8fr .8fr .8fr 30px}
+button{background:transparent;color:var(--acc);border:1px solid var(--acc);border-radius:999px;padding:6px 14px;cursor:pointer;font:inherit}
+#msg{margin-top:10px}.erro{color:var(--red)}.ok{color:var(--acc)}
+</style>
+</head>
+<body>
+<main>
+<h1>Dados da empresa para a readequação 6x1</h1>
+<section><h2>Empresa</h2><div class="g4">
+<div><label>Nome</label><input id="nome"></div>
+<div><label>Setor</label><select id="setor"><option value="alimentacao">Alimentação</option><option value="varejo">Varejo</option><option value="outro">Outro</option></select></div>
+<div><label>Regime tributário</label><select id="regime"><option value="simples">Simples Nacional</option><option value="presumido_real">Presumido / Real</option></select></div>
+<div><label>Cidade/UF</label><input id="cidade"></div></div></section>
+<section><h2>Funcionamento</h2><div id="dias"></div></section>
+<section><h2>Funcionários</h2><div class="fn" style="font-size:12px;color:var(--mut)"><span>Nome</span><span>Função</span><span>Salário</span><span>Entra</span><span>Sai</span><span>Escala</span><span></span></div>
+<div id="fns"></div><button type="button" onclick="addFn()">+ funcionário</button></section>
+<button type="button" onclick="enviar()">Enviar dados</button><div id="msg"></div>
+</main>
+<script>
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DIAS=[["seg","Seg"],["ter","Ter"],["qua","Qua"],["qui","Qui"],["sex","Sex"],["sab","Sáb"],["dom","Dom"]];
+document.getElementById('dias').innerHTML=DIAS.map(([k,r])=>`<div class="dia"><span>${r}</span><input type="time" id="a_${k}" value="09:00"><input type="time" id="f_${k}" value="18:00">
+<select id="p_${k}"><option value="baixo">baixo</option><option value="medio" selected>médio</option><option value="alto">alto</option></select>
+<label><input type="checkbox" id="x_${k}" style="width:auto"> fechado</label></div>`).join('');
+function addFn(){const d=document.createElement('div');d.className='fn';d.innerHTML=`<input class="n"><input class="fu"><input class="s" type="number" min="0" step="0.01">
+<input class="e" type="time" value="09:00"><input class="sa" type="time" value="17:20"><select class="es"><option>6x1</option><option>5x2</option><option>12x36</option></select>
+<button type="button" onclick="this.parentNode.remove()" aria-label="remover">×</button>`;document.getElementById('fns').appendChild(d)}
+addFn();
+async function enviar(){
+ const v=id=>document.getElementById(id).value;
+ const funcionamento={};DIAS.forEach(([k])=>{funcionamento[k]=document.getElementById('x_'+k).checked?null:{abre:v('a_'+k),fecha:v('f_'+k),pico:v('p_'+k)}});
+ const funcionarios=[...document.querySelectorAll('#fns .fn')].map(r=>({nome:r.querySelector('.n').value.trim(),funcao:r.querySelector('.fu').value.trim(),
+  salario:Number(r.querySelector('.s').value),turno:r.querySelector('.e').value+'-'+r.querySelector('.sa').value,escala:r.querySelector('.es').value}));
+ const corpo={empresa:{nome:v('nome'),setor:v('setor'),regime:v('regime'),cidade_uf:v('cidade')},funcionamento,funcionarios};
+ const m=document.getElementById('msg');m.textContent='enviando…';
+ try{const r=await fetch('/entrada',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(corpo)});const d=await r.json();
+  m.innerHTML=d.ok?'<span class="ok">Dados recebidos. Volte ao Claude e diga: pronto.</span>':'<div class="erro">Corrija:<ul>'+d.erros.map(e=>'<li>'+esc(e)+'</li>').join('')+'</ul></div>'}
+ catch(e){m.innerHTML='<span class="erro">Não foi possível enviar. O painel ainda está rodando?</span>'}}
+</script>
+</body>
+</html>

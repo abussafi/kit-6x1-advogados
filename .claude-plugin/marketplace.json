@@ -1,0 +1,14 @@
+{
+  "name": "kit-6x1-advogados",
+  "owner": {
+    "name": "Antonio Marcos Gonçalves Abussafi"
+  },
+  "description": "Kit 6x1 para advogados: readequação da escala de trabalho ao fim da 6x1.",
+  "plugins": [
+    {
+      "name": "kit-6x1",
+      "source": "./",
+      "description": "Readequação da escala ao fim da 6x1 para advogados."
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "empresa": {"nome": "Restaurante Exemplo", "setor": "alimentacao", "regime": "simples", "cidade_uf": "Ribeirão Preto/SP"},
+  "funcionamento": {
+    "seg": {"abre": "11:00", "fecha": "23:00", "pico": "baixo"},
+    "ter": {"abre": "11:00", "fecha": "23:00", "pico": "baixo"},
+    "qua": {"abre": "11:00", "fecha": "23:00", "pico": "medio"},
+    "qui": {"abre": "11:00", "fecha": "23:00", "pico": "medio"},
+    "sex": {"abre": "11:00", "fecha": "00:00", "pico": "alto"},
+    "sab": {"abre": "11:00", "fecha": "00:00", "pico": "alto"},
+    "dom": {"abre": "11:00", "fecha": "17:00", "pico": "alto"}
+  },
+  "funcionarios": [
+    {"nome": "Ana", "funcao": "garcom", "salario": 1950, "turno": "11:00-19:20", "escala": "6x1"},
+    {"nome": "Beto", "funcao": "garcom", "salario": 1950, "turno": "11:00-19:20", "escala": "6x1"},
+    {"nome": "Caio", "funcao": "garcom", "salario": 1950, "turno": "15:00-23:20", "escala": "6x1"},
+    {"nome": "Duda", "funcao": "garcom", "salario": 1950, "turno": "15:00-23:20", "escala": "6x1"},
+    {"nome": "Edu", "funcao": "cozinheiro", "salario": 2600, "turno": "10:00-18:20", "escala": "6x1"},
+    {"nome": "Fabi", "funcao": "cozinheiro", "salario": 2600, "turno": "15:00-23:20", "escala": "6x1"},
+    {"nome": "Gil", "funcao": "cozinheiro", "salario": 2600, "turno": "15:00-23:20", "escala": "6x1"},
+    {"nome": "Hugo", "funcao": "auxiliar", "salario": 1800, "turno": "10:00-18:20", "escala": "6x1"},
+    {"nome": "Iris", "funcao": "auxiliar", "salario": 1800, "turno": "15:00-23:20", "escala": "6x1"},
+    {"nome": "Juca", "funcao": "caixa", "salario": 1900, "turno": "11:00-19:20", "escala": "6x1"},
+    {"nome": "Kika", "funcao": "caixa", "salario": 1900, "turno": "15:00-23:20", "escala": "6x1"},
+    {"nome": "Lia", "funcao": "bar", "salario": 2000, "turno": "15:00-23:20", "escala": "6x1"}
+  ]
+}

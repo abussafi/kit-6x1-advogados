@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Readequação 6x1 ao vivo</title>
+<style>
+:root{--bg:#0b0f0d;--card:#121a16;--line:#1f2b25;--txt:#e6efe9;--mut:#8aa397;--acc:#3ddc84;--opus:#b18cff;--sonnet:#5aa9ff;--haiku:#3ddc84}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 -apple-system,system-ui,sans-serif;padding:16px}
+canvas#rain{position:fixed;inset:0;z-index:0;opacity:.12;pointer-events:none}
+main{position:relative;z-index:1;max-width:900px;margin:0 auto}
+h1{font-size:18px;font-weight:500;margin:0 0 4px}
+.sub{color:var(--mut);font-size:13px;margin-bottom:16px}
+.orq{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:12px}
+.tag{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+.ags{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.ag{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;transition:.3s}
+.ag .n{font-weight:500}
+.ag .s{color:var(--mut);font-size:12px;min-height:18px}
+.ag.run{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc);animation:pulse 1.1s infinite}
+.ag.ok{border-color:#2f6b4a}
+.ag.ok .n::after{content:" ✓";color:var(--acc)}
+.ag.fail{border-color:#e5484d}
+@keyframes pulse{50%{box-shadow:0 0 14px 2px rgba(61,220,132,.45)}}
+h2{font-size:14px;font-weight:500;color:var(--mut);margin:20px 0 8px}
+.row{display:grid;grid-template-columns:180px minmax(0,1fr) 150px;gap:10px;align-items:center;margin:8px 0}
+.track{background:#18221d;border-radius:6px;height:18px;overflow:hidden}
+.bar{height:100%;width:0;border-radius:6px;transition:width 1s ease,background-color 1s ease}
+.val{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.legend{display:grid;grid-template-columns:180px minmax(0,1fr) 150px;gap:10px;font-size:11px;color:var(--mut)}
+.grad{height:6px;border-radius:3px;background:linear-gradient(90deg,hsl(0,75%,52%),hsl(50,95%,52%),hsl(130,65%,45%))}
+.log{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font:12px/1.6 ui-monospace,Menlo,monospace;color:var(--mut);max-height:160px;overflow:auto}
+.best{margin-top:14px;padding:12px 14px;border-radius:12px;border:1px solid var(--acc);background:rgba(61,220,132,.08);display:none}
+.edge{fill:none;stroke:#26352d;stroke-width:1.5}
+.edge.go{stroke:#b18cff;stroke-width:2.5;stroke-dasharray:8 6;animation:dash .6s linear infinite}
+.edge.data{stroke:#3ddc84;stroke-width:2.5;stroke-dasharray:8 6;animation:dash .6s linear infinite}
+.edge.back{stroke:#ff5c5c;stroke-width:3;stroke-dasharray:8 6;animation:dash .4s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-28}}
+.node rect{fill:var(--card);stroke:var(--line);stroke-width:1.5;transition:all .3s}
+.node.run rect{stroke:#3ddc84;stroke-width:2.5;animation:glow 1.1s infinite}
+.node.ok rect{stroke:#2f6b4a}
+.node.fail rect{stroke:#ff5c5c;stroke-width:2.5}
+.node.orq rect{stroke:#b18cff}
+@keyframes glow{50%{filter:drop-shadow(0 0 8px rgba(61,220,132,.8))}}
+.node text{fill:var(--txt);font:500 14px -apple-system,system-ui,sans-serif;text-anchor:middle}
+.node .m{font:500 11px -apple-system,system-ui,sans-serif}
+.node .nt{fill:var(--mut);font:400 11px -apple-system,system-ui,sans-serif}
+@media(max-width:600px){.row,.legend{grid-template-columns:110px minmax(0,1fr) 120px}}
+</style>
+</head>
+<body>
+<canvas id="rain"></canvas>
+<main>
+<h1>Readequação 6x1 · painel ao vivo</h1>
+<div class="sub" id="cli">Cliente: —</div>
+<div class="orq"><span>Etapa atual</span><span id="stage" style="color:var(--mut)">aguardando…</span></div>
+<svg id="flow" viewBox="0 0 900 290" style="width:100%;height:auto;display:block"></svg>
+<h2>Custo mensal vs. hoje</h2>
+<div id="sc"></div>
+<div class="legend"><span></span><div><div class="grad"></div><div style="display:flex;justify-content:space-between"><span>custo extra</span><span>neutro</span><span>economia máxima</span></div></div><span></span></div>
+<div class="best" id="best"></div>
+<h2>Log</h2>
+<div class="log" id="log"></div>
+</main>
+<script>
+const cv=document.getElementById('rain'),cx=cv.getContext('2d');let cols,drops;
+function rs(){cv.width=innerWidth;cv.height=innerHeight;cols=Math.floor(cv.width/14);drops=Array(cols).fill(0)}rs();addEventListener('resize',rs);
+setInterval(()=>{cx.fillStyle='rgba(11,15,13,.12)';cx.fillRect(0,0,cv.width,cv.height);cx.fillStyle='#3ddc84';cx.font='13px monospace';
+drops.forEach((y,i)=>{cx.fillText('01R$6x1'[Math.floor(Math.random()*7)],i*14,y*14);drops[i]=(y*14>cv.height&&Math.random()>.97)?0:y+1})},60);
+const MC={Opus:'var(--opus)',Sonnet:'var(--sonnet)',Haiku:'var(--haiku)'};
+const FMT={minimumFractionDigits:2,maximumFractionDigits:2};
+const brl=v=>(v<0?'− ':'+ ')+'R$ '+Math.abs(v).toLocaleString('pt-BR',FMT);
+const brlAbs=v=>'R$ '+Math.abs(v).toLocaleString('pt-BR',FMT);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function color(v,min,max){const t=v<0?0.5-0.5*Math.min(1,v/min):0.5+0.5*Math.min(1,v/max);const h=Math.round(t*130);return `hsl(${h},${h>35&&h<80?95:70}%,${h>35&&h<80?50:47}%)`}
+const HEX={Opus:'#b18cff',Sonnet:'#5aa9ff',Haiku:'#3ddc84'};
+const P={orq:[450,45]};[90,270,450,630,810].forEach((x,i)=>P[i]=[x,200]);
+function path(a,b,t){const[x1,y1]=P[a],[x2,y2]=P[b];
+ if(a==='orq')return `M${x1},${y1+28} C${x1},${y1+90} ${x2},${y2-100} ${x2},${y2-38}`;
+ if(b==='orq')return `M${x1},${y1-38} C${x1},${y1-100} ${x2},${y2+90} ${x2},${y2+28}`;
+ if(t==='back')return `M${x1},${y1+38} C${x1},${y1+95} ${x2},${y2+95} ${x2},${y2+38}`;
+ if(t)return `M${x1+20},${y1+38} C${x1+20},${y1+70} ${x2-20},${y2+70} ${x2-20},${y2+38}`;
+ return `M${x1+75},${y1} L${x2-75},${y2}`}
+function flow(s){
+ const fx=s.fluxo||[],key=(a,b)=>a+'>'+b,on={};fx.forEach(([a,b,t])=>on[key(a,b)]=t);
+ const base=[];for(let i=0;i<5;i++){base.push(['orq',i,'']);if(i<4)base.push([i,i+1,''])}
+ let h='<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0L10,5L0,10z" fill="#8aa397"/></marker></defs>';
+ base.forEach(([a,b])=>{if(!on[key(a,b)])h+=`<path class="edge" d="${path(a,b)}"/>`});
+ fx.forEach(([a,b,t])=>{const d=path(a,b,t),c=t==='back'?'#ff5c5c':t==='go'?'#b18cff':'#3ddc84';
+  h+=`<path class="edge ${t}" d="${d}" marker-end="url(#ar)"/><circle r="5" fill="${c}"><animateMotion dur="${t==='back'?0.9:1.2}s" repeatCount="indefinite" path="${d}"/></circle>`;
+  if(t==='back')h+=`<text x="${(P[a][0]+P[b][0])/2}" y="${P[a][1]+88}" fill="#ff5c5c" style="font:500 12px -apple-system,system-ui;text-anchor:middle">reprovou</text>`});
+ const orqRun=fx.some(([a,b])=>a==='orq'||b==='orq')||/Opus|concluído/.test(s.etapa);
+ h+=`<g class="node orq"><rect x="360" y="17" width="180" height="56" rx="12" ${orqRun?'style="filter:drop-shadow(0 0 8px rgba(177,140,255,.7))"':''}/><text x="450" y="42">Orquestrador</text><text class="m" x="450" y="60" fill="${HEX.Opus}">Opus</text></g>`;
+ s.agentes.forEach((a,i)=>{const[x,y]=P[i];
+  h+=`<g class="node ${esc(a.estado)}"><rect x="${x-75}" y="${y-38}" width="150" height="76" rx="12"/><text x="${x}" y="${y-12}">${esc(a.nome)}</text><text class="m" x="${x}" y="${y+6}" fill="${HEX[a.modelo]}">${esc(a.modelo)}${a.estado==='ok'?' ✓':''}</text><text class="nt" x="${x}" y="${y+24}">${esc(a.nota)}</text></g>`});
+ document.getElementById('flow').innerHTML=h;
+}
+let last='';
+async function tick(){
+ try{const r=await fetch('status.json?t='+Date.now(),{cache:'no-store'});const t=await r.text();if(t===last)return;last=t;render(JSON.parse(t))}catch(e){console.error('painel: falha ao atualizar o status',e)}
+}
+function render(s){
+ document.getElementById('cli').textContent='Cliente: '+s.cliente;
+ document.getElementById('stage').textContent=s.etapa;
+ flow(s);
+ const vals=s.cenarios.filter(c=>c.valor!=null).map(c=>c.valor);const min=Math.min(-1,...vals),max=Math.max(1,...vals);
+ const sc=document.getElementById('sc');
+ if(sc.children.length!==s.cenarios.length)sc.innerHTML=s.cenarios.map((c,i)=>`<div class="row"><span>${esc(c.nome)}</span><div class="track"><div class="bar" id="b${i}"></div></div><span class="val" id="v${i}"></span></div>`).join('');
+ s.cenarios.forEach((c,i)=>{const b=document.getElementById('b'+i),v=document.getElementById('v'+i);
+  if(c.valor==null){b.style.width='0';v.textContent='testando…';v.style.color='var(--mut)';return}
+  b.style.width=Math.max(4,Math.round((c.valor-min)/(max-min)*100))+'%';b.style.backgroundColor=color(c.valor,min,max);
+  if(c.valor<0){v.textContent='+ '+brlAbs(c.valor)+'/mês';v.style.color='#ff6b6b'}
+  else if(c.valor>0){v.textContent='− '+brlAbs(c.valor)+'/mês';v.style.color='#3ddc84'}
+  else{v.textContent='sem variação';v.style.color='var(--mut)'}});
+ document.getElementById('log').innerHTML=s.log.map(l=>'› '+esc(l)).reverse().join('<br>');
+ const be=document.getElementById('best');if(s.recomendado){const r=s.recomendado;be.style.display='block';
+  let t='🏆 Recomendado: <b>'+esc(r.nome)+'</b> · risco '+r.risco+'/10';
+  const av=r.aumento_vs_hoje,ec=r.economia_vs_manter_6x1;
+  if(av!=null){
+   if(av>0)t+='<br>Custo vs. hoje: <b style="color:#ff6b6b">+ '+brlAbs(av)+'/mês</b>';
+   else if(av<0)t+='<br>Custo vs. hoje: <b style="color:#3ddc84">− '+brlAbs(av)+'/mês</b>';
+   else t+='<br>Custo vs. hoje: <b>sem variação</b>';
+  }
+  if(ec>0)t+=' · Economia vs. manter a 6x1: <b style="color:#3ddc84">'+brlAbs(ec)+'/mês</b>';
+  else if(ec<0)t+=' · Custo acima de manter a 6x1: <b style="color:#ff6b6b">'+brlAbs(ec)+'/mês</b>';
+  t+=' · <a href="calendario.html">ver calendário</a>';be.innerHTML=t}else be.style.display='none';
+}
+setInterval(tick,700);tick();
+</script>
+</body>
+</html>

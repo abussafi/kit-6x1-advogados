@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Escala da readequação</title>
+<style>
+:root{--bg:#0b0f0d;--card:#121a16;--line:#1f2b25;--txt:#e6efe9;--mut:#8aa397;--acc:#3ddc84;--red:#ff6b6b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 -apple-system,system-ui,sans-serif;padding:16px}
+main{max-width:1000px;margin:0 auto}h1{font-size:18px;font-weight:500;margin:0}.sub{color:var(--mut);font-size:13px;margin-bottom:14px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.bar button{background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;font:inherit}
+.bar button.on{border-color:var(--acc);color:var(--acc)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.st{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}.st .l{color:var(--mut);font-size:12px}.st .v{font-size:20px;font-weight:500}
+.months{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,340px));gap:12px}.m{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+.g{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.wd{font-size:10px;color:var(--mut);text-align:center}
+.d{aspect-ratio:1;border-radius:5px;font-size:10px;padding:2px 3px;position:relative}.d .t{position:absolute;bottom:2px;left:3px;right:2px;font-size:8.5px;white-space:nowrap;overflow:hidden}
+.w{background:#173326;color:#bff3d6}.off{background:#22201a;color:#8a8478}.offs{background:#3a2e10;color:#f7d27a}.fora{background:transparent;color:#3a4a42}.hol{box-shadow:inset 0 0 0 1.5px #ff9f43}
+.eco{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:16px}a{color:var(--acc)}
+</style>
+</head>
+<body>
+<main>
+<h1>Escala recomendada</h1>
+<div class="sub" id="sub">carregando resultado…</div>
+<div class="bar" id="ws"></div>
+<div class="stats" id="stats"></div>
+<div class="months" id="months"></div>
+<div class="eco" id="eco"></div>
+</main>
+<script>
+const brl=v=>'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const NOMES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let R,cur=0;
+function dt(s){const[a,m,d]=s.split('-').map(Number);return new Date(Date.UTC(a,m-1,d))}
+function draw(){
+ const e=R.escala[cur];
+ document.getElementById('ws').innerHTML=R.escala.map((x,i)=>`<button class="${i===cur?'on':''}" onclick="cur=${i};draw()">${esc(x.funcionario)} · ${esc(x.funcao)}</button>`).join('');
+ const porDia={};e.dias.forEach(x=>porDia[x.data]=x);
+ const trab=e.dias.filter(x=>x.turno),folg=e.dias.filter(x=>!x.turno);
+ const domF=folg.filter(x=>dt(x.data).getUTCDay()===0).length,fer=trab.filter(x=>x.feriado).length;
+ // Horas no período = dias trabalhados × 8 (turnos do motor: 8h trabalhadas + 1h de intervalo).
+ document.getElementById('stats').innerHTML=[["Dias trabalhados",trab.length],["Horas no período",trab.length*8+"h"],["Folgas",folg.length],["Domingos de folga",domF],["Feriados trabalhados",fer]]
+  .map(s=>`<div class="st"><div class="l">${s[0]}</div><div class="v">${s[1]}</div></div>`).join('');
+ const meses=[...new Set(e.dias.map(x=>x.data.slice(0,7)))];
+ document.getElementById('months').innerHTML=meses.map(k=>{const[a,m]=k.split('-').map(Number);const first=new Date(Date.UTC(a,m-1,1)),last=new Date(Date.UTC(a,m,0)).getUTCDate();
+  let h='';for(let i=0;i<first.getUTCDay();i++)h+='<div></div>';
+  for(let d=1;d<=last;d++){const iso=`${k}-${String(d).padStart(2,'0')}`,x=porDia[iso];
+   if(!x){h+=`<div class="d fora">${d}</div>`;continue}
+   const dom=dt(iso).getUTCDay()===0,c=x.turno?'w':(dom?'offs':'off');
+   h+=`<div class="d ${c} ${x.feriado&&x.turno?'hol':''}" title="${esc(iso)}${x.feriado?' · '+esc(x.feriado):''}">${d}${x.turno?`<span class="t">${esc(x.turno)}</span>`:''}</div>`}
+  return `<div class="m"><b style="font-weight:500">${NOMES[m-1]} ${a}</b><div class="g">${["D","S","T","Q","Q","S","S"].map(x=>`<div class="wd">${x}</div>`).join('')}${h}</div></div>`}).join('');
+}
+function eco(){
+ const rec=R.cenarios.find(c=>c.id===R.recomendado.id);
+ let h=`<div style="font-weight:500;margin-bottom:6px">Cenário recomendado: ${esc(rec.nome)} (risco ${esc(rec.nota_risco)}/10)</div>`;
+ const av=rec.aumento_vs_hoje;
+ if(av!=null){
+  if(av>0)h+=`<div>Custo vs. hoje: <b style="color:var(--red)">+ ${brl(av)}/mês</b></div>`;
+  else if(av<0)h+=`<div>Custo vs. hoje: <b style="color:var(--acc)">− ${brl(av)}/mês</b></div>`;
+  else h+=`<div>Custo vs. hoje: <b>sem variação</b></div>`;
+ }
+ const ec=rec.economia_vs_manter_6x1;
+ if(ec>0)h+=`<div>Economia vs. manter a 6x1: <b style="color:var(--acc)">${brl(ec)}/mês</b></div>`;
+ else if(ec<0)h+=`<div>Custo acima de manter a 6x1: <b style="color:var(--red)">${brl(ec)}/mês</b></div>`;
+ if(rec.estimativa)h+=`<div style="color:var(--mut);font-size:12px;margin-top:6px">Valores com estimativa: ${esc(rec.motivos.join(' '))}</div>`;
+ document.getElementById('eco').innerHTML=h;
+}
+fetch('resultado.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('http');return r.json()}).then(
+ d=>{try{R=d;
+  document.getElementById('sub').innerHTML=`${esc(d.empresa.nome)} · teto ${esc(d.situacao_atual.teto_semanal_aplicado)}h · <a href="index.html">voltar ao painel</a>`;draw();eco()}
+  catch(e){document.getElementById('sub').textContent='Erro ao exibir o resultado: '+e.message}},
+ ()=>{document.getElementById('sub').textContent='O resultado ainda não foi gerado.'});
+</script>
+</body>
+</html>

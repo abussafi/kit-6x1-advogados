@@ -1,0 +1,22 @@
+{
+  "empresa": {"nome": "Loja Exemplo", "setor": "varejo", "regime": "presumido_real", "cidade_uf": "Campinas/SP"},
+  "funcionamento": {
+    "seg": {"abre": "09:00", "fecha": "19:00", "pico": "medio"},
+    "ter": {"abre": "09:00", "fecha": "19:00", "pico": "baixo"},
+    "qua": {"abre": "09:00", "fecha": "19:00", "pico": "baixo"},
+    "qui": {"abre": "09:00", "fecha": "19:00", "pico": "medio"},
+    "sex": {"abre": "09:00", "fecha": "19:00", "pico": "alto"},
+    "sab": {"abre": "09:00", "fecha": "19:00", "pico": "alto"},
+    "dom": {"abre": "09:00", "fecha": "15:00", "pico": "medio"}
+  },
+  "funcionarios": [
+    {"nome": "Ana", "funcao": "vendedor", "salario": 2100, "turno": "09:00-17:20", "escala": "6x1"},
+    {"nome": "Bia", "funcao": "vendedor", "salario": 2100, "turno": "09:00-17:20", "escala": "6x1"},
+    {"nome": "Cris", "funcao": "vendedor", "salario": 2100, "turno": "10:40-19:00", "escala": "6x1"},
+    {"nome": "Davi", "funcao": "vendedor", "salario": 2100, "turno": "10:40-19:00", "escala": "6x1"},
+    {"nome": "Eva", "funcao": "caixa", "salario": 1900, "turno": "09:00-17:20", "escala": "6x1"},
+    {"nome": "Fred", "funcao": "caixa", "salario": 1900, "turno": "10:40-19:00", "escala": "6x1"},
+    {"nome": "Gabi", "funcao": "estoque", "salario": 1850, "turno": "09:00-17:20", "escala": "6x1"},
+    {"nome": "Hel", "funcao": "estoque", "salario": 1850, "turno": "10:40-19:00", "escala": "6x1"}
+  ]
+}
