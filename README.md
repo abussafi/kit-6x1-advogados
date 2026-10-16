@@ -60,6 +60,10 @@ Para remover:
 claude plugin uninstall kit-6x1@kit-6x1-advogados
 ```
 
+## Material de mídia para divulgar
+
+Em [`docs/briefing-midia/`](docs/briefing-midia) há um briefing pronto para um agente de IA (Codex, Claude Code ou similar) montar, com a sua marca, um pacote de carrosséis, posts, stories, roteiro de vídeo e legendas sobre o fim da 6x1. O conteúdo é informativo e foi escrito dentro do Provimento 205/2021 da OAB. Leia antes o [`COMO-USAR.md`](docs/briefing-midia/COMO-USAR.md).
+
 ## Cuidados com dados
 
 O motor roda no seu computador, mas o texto digitado na conversa é processado pela Anthropic. Prefira códigos (F01, F02…) a nomes de funcionários e siga a política de dados e de sigilo do seu escritório.
